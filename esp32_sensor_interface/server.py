@@ -79,7 +79,22 @@ def predict_fertilizer(data):
 @app.route('/')
 def home():
     """Render the web interface."""
-    return render_template('index.html', readings=latest_readings)
+    soil_types = []
+    crop_types = []
+    
+    if models is not None:
+        # Get soil types from encoder
+        soil_types = list(zip(range(len(models['soil_encoder'].classes_)), 
+                             models['soil_encoder'].classes_))
+        
+        # Get crop types from encoder
+        crop_types = list(zip(range(len(models['crop_encoder'].classes_)), 
+                             models['crop_encoder'].classes_))
+    
+    return render_template('index.html', 
+                          readings=latest_readings, 
+                          soil_types=soil_types,
+                          crop_types=crop_types)
 
 @app.route('/sensor-data', methods=['POST'])
 def receive_data():
@@ -174,6 +189,51 @@ def update_crop():
             'message': str(e)
         }), 400
 
+@app.route('/update-soil', methods=['POST'])
+def update_soil():
+    """Update soil type and get new recommendation."""
+    try:
+        if models is None:
+            return jsonify({
+                'status': 'error',
+                'message': 'Model not loaded. Please train the model first.'
+            }), 400
+            
+        soil_type = request.json['soil_type']
+        latest_readings['soil_type'] = int(soil_type)
+        
+        # Prepare input data with new soil type
+        features = np.array([
+            latest_readings['temperature'],
+            latest_readings['humidity'],
+            latest_readings['moisture'],
+            latest_readings['soil_type'],
+            0,  # Default crop type
+            latest_readings['nitrogen'],
+            latest_readings['phosphorous'],
+            latest_readings['potassium']
+        ]).reshape(1, -1)
+        
+        # Scale features
+        features_scaled = models['scaler'].transform(features)
+        
+        # Make prediction
+        prediction = models['model'].predict(features_scaled)[0]
+        fertilizer = models['fertilizer_encoder'].inverse_transform([prediction])[0]
+        
+        latest_readings['recommended_fertilizer'] = fertilizer
+        
+        return jsonify({
+            'status': 'success',
+            'recommended_fertilizer': fertilizer
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 400
+
 if __name__ == '__main__':
     # Create templates directory if it doesn't exist
     templates_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
@@ -185,4 +245,4 @@ if __name__ == '__main__':
         print("WARNING: Models not loaded. The server will start but won't be able to make predictions.")
         print("Please run soil_testing_model.py first to train the model.")
     
-    app.run(host='0.0.0.0', port=5000, debug=True) 
+    app.run(host='0.0.0.0', port=5000, debug=True)

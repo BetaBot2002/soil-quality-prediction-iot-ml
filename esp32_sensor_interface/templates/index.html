@@ -67,17 +67,32 @@
                 <div class="card sensor-card mb-3">
                     <div class="card-body">
                         <h5 class="card-title">Soil Type</h5>
-                        <p class="reading-value">
-                            {% if readings.soil_type == 0 %}
-                                Sandy
-                            {% elif readings.soil_type == 1 %}
-                                Loamy
-                            {% elif readings.soil_type == 2 %}
-                                Red
-                            {% else %}
-                                Clayey
-                            {% endif %}
-                        </p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <p class="reading-value">
+                                {% if soil_types %}
+                                    {% for soil_id, soil_name in soil_types %}
+                                        {% if readings.soil_type == soil_id %}
+                                            {{ soil_name }}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                    {% if readings.soil_type == 0 %}
+                                        Sandy
+                                    {% elif readings.soil_type == 1 %}
+                                        Loamy
+                                    {% elif readings.soil_type == 2 %}
+                                        Black
+                                    {% elif readings.soil_type == 3 %}
+                                        Red
+                                    {% else %}
+                                        Clayey
+                                    {% endif %}
+                                {% endif %}
+                            </p>
+                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#soilTypeModal">
+                                Change
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -148,16 +163,53 @@
                     <div class="card-body">
                         <h5 class="card-title">Update Crop Type</h5>
                         <select class="form-select mb-3" id="cropSelect">
-                            <option value="0">Maize</option>
-                            <option value="1">Sugarcane</option>
-                            <option value="2">Cotton</option>
-                            <option value="3">Tobacco</option>
-                            <option value="4">Paddy</option>
-                            <option value="5">Barley</option>
-                            <option value="6">Wheat</option>
+                            {% if crop_types %}
+                                {% for crop_id, crop_name in crop_types %}
+                                    <option value="{{ crop_id }}">{{ crop_name }}</option>
+                                {% endfor %}
+                            {% else %}
+                                <option value="0">Maize</option>
+                                <option value="1">Sugarcane</option>
+                                <option value="2">Cotton</option>
+                                <option value="3">Tobacco</option>
+                                <option value="4">Paddy</option>
+                                <option value="5">Barley</option>
+                                <option value="6">Wheat</option>
+                            {% endif %}
                         </select>
                         <button class="btn btn-primary" onclick="updateCrop()">Update Recommendation</button>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Soil Type Modal -->
+    <div class="modal fade" id="soilTypeModal" tabindex="-1" aria-labelledby="soilTypeModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="soilTypeModalLabel">Change Soil Type</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <select class="form-select" id="soilSelect">
+                        {% if soil_types %}
+                            {% for soil_id, soil_name in soil_types %}
+                                <option value="{{ soil_id }}" {% if readings.soil_type == soil_id %}selected{% endif %}>{{ soil_name }}</option>
+                            {% endfor %}
+                        {% else %}
+                            <option value="0" {% if readings.soil_type == 0 %}selected{% endif %}>Sandy</option>
+                            <option value="1" {% if readings.soil_type == 1 %}selected{% endif %}>Loamy</option>
+                            <option value="2" {% if readings.soil_type == 2 %}selected{% endif %}>Black</option>
+                            <option value="3" {% if readings.soil_type == 3 %}selected{% endif %}>Red</option>
+                            <option value="4" {% if readings.soil_type == 4 %}selected{% endif %}>Clayey</option>
+                        {% endif %}
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="updateSoil()">Save changes</button>
                 </div>
             </div>
         </div>
@@ -190,10 +242,39 @@
             });
         }
         
+        function updateSoil() {
+            const soilType = document.getElementById('soilSelect').value;
+            
+            fetch('/update-soil', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    soil_type: parseInt(soilType)
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    location.reload();
+                } else {
+                    alert('Error updating soil type: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('Error: ' + error);
+            });
+            
+            // Close the modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('soilTypeModal'));
+            modal.hide();
+        }
+        
         // Auto-refresh every 5 minutes
         setInterval(() => {
             location.reload();
         }, 300000);
     </script>
 </body>
-</html> 
+</html>
