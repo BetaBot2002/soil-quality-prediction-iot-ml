@@ -1,11 +1,15 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, render_template, request, jsonify
+import json
+import os
+import datetime
 import joblib
 import numpy as np
-import json
-from datetime import datetime
-import os
+import requests
 
 app = Flask(__name__)
+
+# API endpoint for fetching sensor data
+API_ENDPOINT = "https://soil-quality-prediction-iot-ml.onrender.com/get_data"
 
 # Load models and encoders
 def load_models():
@@ -37,18 +41,33 @@ def load_models():
 # Initialize models
 models = load_models()
 
-# Store latest readings
+# Initialize latest readings
 latest_readings = {
-    'temperature': 0,
-    'humidity': 0,
-    'moisture': 0,
-    'soil_type': 0,
-    'nitrogen': 0,
-    'phosphorous': 0,
-    'potassium': 0,
-    'timestamp': None,
-    'recommended_fertilizer': None
+    'temperature': 25.0,
+    'humidity': 60.0,
+    'moisture': 35.0,
+    'nitrogen': 20.0,
+    'phosphorus': 15.0,
+    'potassium': 25.0,
+    'soil_type': 1,  # Default to Loamy
+    'crop_type': 0,  # Default to Maize
+    'recommended_fertilizer': 'No recommendation yet',
+    'timestamp': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 }
+
+# Function to fetch data from the external API
+def fetch_sensor_data():
+    try:
+        response = requests.get(API_ENDPOINT)
+        if response.status_code == 200:
+            data = response.json()
+            return data
+        else:
+            print(f"Error fetching data: {response.status_code}")
+            return None
+    except Exception as e:
+        print(f"Exception while fetching data: {e}")
+        return None
 
 def predict_fertilizer(data):
     """Make prediction using the AI model."""
@@ -61,9 +80,9 @@ def predict_fertilizer(data):
         data['humidity'],
         data['moisture'],
         data['soil_type'],
-        0,  # Default crop type (can be modified through web interface)
+        data.get('crop_type', 0),  # Default crop type (can be modified through web interface)
         data['nitrogen'],
-        data['phosphorous'],
+        data['phosphorus'],
         data['potassium']
     ]).reshape(1, -1)
     
@@ -79,17 +98,43 @@ def predict_fertilizer(data):
 @app.route('/')
 def home():
     """Render the web interface."""
-    soil_types = []
-    crop_types = []
+    # Fetch latest data from the API
+    api_data = fetch_sensor_data()
     
-    if models is not None:
-        # Get soil types from encoder
-        soil_types = list(zip(range(len(models['soil_encoder'].classes_)), 
-                             models['soil_encoder'].classes_))
+    if api_data:
+        # Update latest readings with data from API
+        latest_readings.update({
+            'temperature': api_data.get('temperature', latest_readings['temperature']),
+            'humidity': api_data.get('humidity', latest_readings['humidity']),
+            'moisture': api_data.get('moisture', latest_readings['moisture']),
+            'nitrogen': api_data.get('nitrogen', latest_readings['nitrogen']),
+            'phosphorus': api_data.get('phosphorus', latest_readings['phosphorus']),
+            'potassium': api_data.get('potassium', latest_readings['potassium']),
+            'timestamp': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        })
         
-        # Get crop types from encoder
-        crop_types = list(zip(range(len(models['crop_encoder'].classes_)), 
-                             models['crop_encoder'].classes_))
+        # Get fertilizer recommendation based on updated data
+        fertilizer = predict_fertilizer(latest_readings)
+        latest_readings['recommended_fertilizer'] = fertilizer
+    
+    # Define soil types and crop types
+    soil_types = [
+        (0, "Sandy"),
+        (1, "Loamy"),
+        (2, "Black"),
+        (3, "Red"),
+        (4, "Clayey")
+    ]
+    
+    crop_types = [
+        (0, "Maize"),
+        (1, "Sugarcane"),
+        (2, "Cotton"),
+        (3, "Tobacco"),
+        (4, "Paddy"),
+        (5, "Barley"),
+        (6, "Wheat")
+    ]
     
     return render_template('index.html', 
                           readings=latest_readings, 
@@ -100,29 +145,36 @@ def home():
 def receive_data():
     """Receive and process sensor data."""
     try:
-        data = request.json
+        # First try to get data from the API
+        api_data = fetch_sensor_data()
+        
+        if api_data:
+            # Use API data
+            data = api_data
+        else:
+            # Fallback to request data if API fails
+            data = request.json
         
         # Update latest readings
         latest_readings.update({
-            'temperature': data['temperature'],
-            'humidity': data['humidity'],
-            'moisture': data['moisture'],
-            'soil_type': data['soil_type'],
-            'nitrogen': data['nitrogen'],
-            'phosphorous': data['phosphorous'],
-            'potassium': data['potassium'],
-            'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            'temperature': data.get('temperature', latest_readings['temperature']),
+            'humidity': data.get('humidity', latest_readings['humidity']),
+            'moisture': data.get('moisture', latest_readings['moisture']),
+            'soil_type': data.get('soil_type', latest_readings['soil_type']),
+            'nitrogen': data.get('nitrogen', latest_readings['nitrogen']),
+            'phosphorus': data.get('phosphorus', latest_readings['phosphorus']),
+            'potassium': data.get('potassium', latest_readings['potassium']),
+            'timestamp': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         })
         
         # Get fertilizer recommendation
-        fertilizer = predict_fertilizer(data)
+        fertilizer = predict_fertilizer(latest_readings)
         latest_readings['recommended_fertilizer'] = fertilizer
         
         # Save to log file
         log_data = {
-            **data,
-            'timestamp': latest_readings['timestamp'],
-            'recommended_fertilizer': fertilizer
+            **latest_readings,
+            'source': 'API' if api_data else 'Direct POST'
         }
         
         # Create logs directory if it doesn't exist
@@ -149,33 +201,11 @@ def receive_data():
 def update_crop():
     """Update crop type and get new recommendation."""
     try:
-        if models is None:
-            return jsonify({
-                'status': 'error',
-                'message': 'Model not loaded. Please train the model first.'
-            }), 400
-            
         crop_type = request.json['crop_type']
+        latest_readings['crop_type'] = int(crop_type)
         
-        # Prepare input data with new crop type
-        features = np.array([
-            latest_readings['temperature'],
-            latest_readings['humidity'],
-            latest_readings['moisture'],
-            latest_readings['soil_type'],
-            crop_type,
-            latest_readings['nitrogen'],
-            latest_readings['phosphorous'],
-            latest_readings['potassium']
-        ]).reshape(1, -1)
-        
-        # Scale features
-        features_scaled = models['scaler'].transform(features)
-        
-        # Make prediction
-        prediction = models['model'].predict(features_scaled)[0]
-        fertilizer = models['fertilizer_encoder'].inverse_transform([prediction])[0]
-        
+        # Get fertilizer recommendation with updated crop type
+        fertilizer = predict_fertilizer(latest_readings)
         latest_readings['recommended_fertilizer'] = fertilizer
         
         return jsonify({
@@ -193,34 +223,11 @@ def update_crop():
 def update_soil():
     """Update soil type and get new recommendation."""
     try:
-        if models is None:
-            return jsonify({
-                'status': 'error',
-                'message': 'Model not loaded. Please train the model first.'
-            }), 400
-            
         soil_type = request.json['soil_type']
         latest_readings['soil_type'] = int(soil_type)
         
-        # Prepare input data with new soil type
-        features = np.array([
-            latest_readings['temperature'],
-            latest_readings['humidity'],
-            latest_readings['moisture'],
-            latest_readings['soil_type'],
-            0,  # Default crop type
-            latest_readings['nitrogen'],
-            latest_readings['phosphorous'],
-            latest_readings['potassium']
-        ]).reshape(1, -1)
-        
-        # Scale features
-        features_scaled = models['scaler'].transform(features)
-        
-        # Make prediction
-        prediction = models['model'].predict(features_scaled)[0]
-        fertilizer = models['fertilizer_encoder'].inverse_transform([prediction])[0]
-        
+        # Get fertilizer recommendation with updated soil type
+        fertilizer = predict_fertilizer(latest_readings)
         latest_readings['recommended_fertilizer'] = fertilizer
         
         return jsonify({
@@ -234,15 +241,46 @@ def update_soil():
             'message': str(e)
         }), 400
 
+# Function to refresh data from API periodically
+@app.before_request
+def refresh_data():
+    """Refresh data from API before processing requests."""
+    # Only refresh data for GET requests to avoid unnecessary API calls
+    if request.method == 'GET':
+        api_data = fetch_sensor_data()
+        if api_data:
+            # Update latest readings with data from API
+            latest_readings.update({
+                'temperature': api_data.get('temperature', latest_readings['temperature']),
+                'humidity': api_data.get('humidity', latest_readings['humidity']),
+                'moisture': api_data.get('moisture', latest_readings['moisture']),
+                'nitrogen': api_data.get('nitrogen', latest_readings['nitrogen']),
+                'phosphorus': api_data.get('phosphorus', latest_readings['phosphorus']),
+                'potassium': api_data.get('potassium', latest_readings['potassium']),
+                'timestamp': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            })
+            
+            # Get fertilizer recommendation based on updated data
+            fertilizer = predict_fertilizer(latest_readings)
+            latest_readings['recommended_fertilizer'] = fertilizer
+
 if __name__ == '__main__':
     # Create templates directory if it doesn't exist
     templates_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
     if not os.path.exists(templates_dir):
         os.makedirs(templates_dir)
     
-    # Check if models are loaded
-    if models is None:
-        print("WARNING: Models not loaded. The server will start but won't be able to make predictions.")
-        print("Please run soil_testing_model.py first to train the model.")
+    # Create logs directory if it doesn't exist
+    logs_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
+    if not os.path.exists(logs_dir):
+        os.makedirs(logs_dir)
+    
+    # Initial data fetch from API
+    print("Fetching initial data from API...")
+    api_data = fetch_sensor_data()
+    if api_data:
+        print("Successfully fetched initial data from API")
+    else:
+        print("WARNING: Could not fetch initial data from API. Using default values.")
     
     app.run(host='0.0.0.0', port=5000, debug=True)

@@ -151,11 +151,11 @@
                     <div class="card-body">
                         <h5 class="card-title">
                             <i class="bi bi-circle-square me-2"></i>
-                            Phosphorous
-                            <span class="alert-indicator float-end {{ 'alert-red' if readings.phosphorous < 10 else 'alert-green' }}"></span>
+                            Phosphorus
+                            <span class="alert-indicator float-end {{ 'alert-red' if readings.phosphorus < 10 else 'alert-green' }}"></span>
                         </h5>
                         <p class="reading-value">
-                            {{ readings.phosphorous }}
+                            {{ readings.phosphorus }}
                             <span class="reading-unit">mg/kg</span>
                         </p>
                     </div>
@@ -330,10 +330,44 @@
             modal.hide();
         }
         
-        // Auto-refresh every 5 minutes
+        // Function to update the UI with new sensor data
+        function updateSensorData() {
+            fetch('/sensor-data', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Instead of reloading the page, we could update the UI elements directly
+                    // But for simplicity, we'll just reload the page to get the latest data
+                    location.reload();
+                } else {
+                    console.error('Error updating sensor data:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching sensor data:', error);
+            });
+        }
+        
+        // Auto-refresh data every 30 seconds
+        setInterval(updateSensorData, 30000);
+        
+        // Auto-refresh page every 5 minutes
         setInterval(() => {
             location.reload();
         }, 300000);
+        
+        // Initial data fetch when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Page loaded, fetching initial sensor data...');
+            // Wait a moment for the page to fully load before fetching data
+            setTimeout(updateSensorData, 1000);
+        });
     </script>
 </body>
 </html>
