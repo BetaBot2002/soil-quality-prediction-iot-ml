@@ -241,28 +241,8 @@ def update_soil():
             'message': str(e)
         }), 400
 
-# Function to refresh data from API periodically
-@app.before_request
-def refresh_data():
-    """Refresh data from API before processing requests."""
-    # Only refresh data for GET requests to avoid unnecessary API calls
-    if request.method == 'GET':
-        api_data = fetch_sensor_data()
-        if api_data:
-            # Update latest readings with data from API
-            latest_readings.update({
-                'temperature': api_data.get('temperature', latest_readings['temperature']),
-                'humidity': api_data.get('humidity', latest_readings['humidity']),
-                'moisture': api_data.get('moisture', latest_readings['moisture']),
-                'nitrogen': api_data.get('nitrogen', latest_readings['nitrogen']),
-                'phosphorus': api_data.get('phosphorus', latest_readings['phosphorus']),
-                'potassium': api_data.get('potassium', latest_readings['potassium']),
-                'timestamp': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            })
-            
-            # Get fertilizer recommendation based on updated data
-            fertilizer = predict_fertilizer(latest_readings)
-            latest_readings['recommended_fertilizer'] = fertilizer
+# Removed automatic refresh on every request to make refreshing manual only
+# The refresh now happens only when explicitly requested via the refresh button
 
 if __name__ == '__main__':
     # Create templates directory if it doesn't exist
