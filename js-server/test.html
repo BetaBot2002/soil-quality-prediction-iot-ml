@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soil Sensor Data Tester</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+        }
+        .panel {
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+        }
+        h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Soil Sensor Data Tester</h1>
+    
+    <div class="container">
+        <div class="panel">
+            <h2>Send Sensor Data</h2>
+            <form id="sensorForm">
+                <label for="moisture">Moisture (%):</label>
+                <input type="number" id="moisture" name="moisture" step="0.1" value="45.2">
+                
+                <label for="temperature">Temperature (°C):</label>
+                <input type="number" id="temperature" name="temperature" step="0.1" value="25.3">
+                
+                <label for="humidity">Humidity (%):</label>
+                <input type="number" id="humidity" name="humidity" step="0.1" value="68.7">
+                
+                <label for="nitrogen">Nitrogen (mg/kg):</label>
+                <input type="number" id="nitrogen" name="nitrogen" value="42">
+                
+                <label for="phosphorus">Phosphorus (mg/kg):</label>
+                <input type="number" id="phosphorus" name="phosphorus" value="35">
+                
+                <label for="potassium">Potassium (mg/kg):</label>
+                <input type="number" id="potassium" name="potassium" value="28">
+                
+                <button type="submit">Send Data</button>
+            </form>
+            <div id="sendResult"></div>
+        </div>
+        
+        <div class="panel">
+            <h2>Current Sensor Data</h2>
+            <button id="fetchData">Fetch Data</button>
+            <pre id="currentData">Click "Fetch Data" to see current values</pre>
+        </div>
+    </div>
+    
+    <script>
+        // Base URL for the API
+        const API_URL = 'http://localhost:3000';
+        
+        // Form submission handler
+        document.getElementById('sensorForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const resultDiv = document.getElementById('sendResult');
+            
+            try {
+                // Collect form data
+                const formData = {
+                    moisture: parseFloat(document.getElementById('moisture').value),
+                    temperature: parseFloat(document.getElementById('temperature').value),
+                    humidity: parseFloat(document.getElementById('humidity').value),
+                    nitrogen: parseInt(document.getElementById('nitrogen').value),
+                    phosphorus: parseInt(document.getElementById('phosphorus').value),
+                    potassium: parseInt(document.getElementById('potassium').value)
+                };
+                
+                // Send data to server
+                const response = await fetch(`${API_URL}/write_data`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `<p style="color: green">Success: ${data.message}</p>`;
+                    // Refresh the current data display
+                    fetchCurrentData();
+                } else {
+                    resultDiv.innerHTML = `<p style="color: red">Error: ${data.error || 'Unknown error'}</p>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color: red">Error: ${error.message}</p>`;
+            }
+        });
+        
+        // Fetch current data handler
+        document.getElementById('fetchData').addEventListener('click', fetchCurrentData);
+        
+        async function fetchCurrentData() {
+            const dataDisplay = document.getElementById('currentData');
+            
+            try {
+                const response = await fetch(`${API_URL}/get_data`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    dataDisplay.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    const errorData = await response.json();
+                    dataDisplay.textContent = `Error: ${errorData.error || 'Unknown error'}`;
+                }
+            } catch (error) {
+                dataDisplay.textContent = `Error: ${error.message}`;
+            }
+        }
+        
+        // Initial data fetch
+        fetchCurrentData();
+    </script>
+</body>
+</html>
