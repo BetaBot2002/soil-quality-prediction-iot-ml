@@ -3,7 +3,7 @@
 #define BLYNK_AUTH_TOKEN "gFxZ4mVCpGZFPmfDFYFFeOtDOb9_5hxY"
 
 // Define WOKWI macro for simulator detection
-#define WOKWI 1  // Comment this line out when deploying to real hardware
+// #define WOKWI 1  // Uncomment this line when using Wokwi simulator
 
 // Pin definitions
 #define LED_PIN 26
@@ -14,22 +14,21 @@
 // Include necessary libraries
 #include <WiFi.h>
 #include <WiFiClient.h>
-#include <WiFiClientSecure.h>  // For HTTPS support
 #include <BlynkSimpleEsp32.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include "DHTesp.h"  // DHT sensor library
-#include <HTTPClient.h>
-#include <ArduinoJson.h>  // For JSON formatting
+#include <ThingSpeak.h>  // ThingSpeak library
 
 // WiFi credentials
-char ssid[] = "Wokwi-GUEST";
-char pass[] = "";
+char ssid[] = "YourWiFiSSID";  // Replace with your WiFi network name
+char pass[] = "YourWiFiPassword";  // Replace with your WiFi password
 
-// Server endpoint for sending sensor data
-const char* serverUrl = "https://soil-quality-prediction-iot-ml.onrender.com/write_data";
-const char* serverHost = "soil-quality-prediction-iot-ml.onrender.com";
-const int serverPort = 443;  // HTTPS port
+// ThingSpeak settings - IMPORTANT: Replace with your own values for real hardware
+// Create a ThingSpeak channel at https://thingspeak.com and get your channel ID and Write API Key
+unsigned long thingSpeakChannelNumber = 2989083;  // Replace with your channel number
+const char* thingSpeakWriteAPIKey = "O5SNHNR7NKHX0OZZ";  // Replace with your ThingSpeak Write API Key
+WiFiClient thingSpeakClient;  // Client for ThingSpeak connection
 
 // Sensor variables
 int moistureValue = 0;  // For storing moisture sensor reading
@@ -74,9 +73,30 @@ void setup() {
   Serial.begin(115200);  // Debug serial port
   Serial2.begin(15200, SERIAL_8N1, 16, 17);  // NPK sensor communication
 
-  // Connect to Blynk
+  // Connect to WiFi and Blynk
+  Serial.print("Connecting to WiFi...");
   Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
-  Serial.println("Connected to Blynk");
+  
+  // Wait for WiFi connection
+  int attempts = 0;
+  while (WiFi.status() != WL_CONNECTED && attempts < 20) {
+    delay(500);
+    Serial.print(".");
+    attempts++;
+  }
+  
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("\nWiFi connected successfully!");
+    Serial.print("IP address: ");
+    Serial.println(WiFi.localIP());
+    Serial.println("Connected to Blynk");
+  } else {
+    Serial.println("\nFailed to connect to WiFi. Check credentials or network.");
+  }
+  
+  // Initialize ThingSpeak
+  ThingSpeak.begin(thingSpeakClient);
+  Serial.println("ThingSpeak initialized");
 
   // Initialize pins
   pinMode(LED_PIN, OUTPUT);
@@ -98,97 +118,44 @@ void setup() {
 }
 
 /**
- * Sends sensor data to the cloud server via HTTPS
- * Creates a JSON payload with all sensor readings and sends it to the server
- * Includes complete simulation mode for Wokwi environment
+ * Sends sensor data to ThingSpeak
+ * Creates a multi-field update to send all sensor readings to ThingSpeak
  */
-void sendDataToServer() {
+void sendDataToThingSpeak() {
   // Check WiFi connection
   if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("WiFi not connected");
+    Serial.println("WiFi not connected for ThingSpeak");
     return;
   }
   
-  // Create JSON document with sensor data
-  StaticJsonDocument<256> doc;
-  doc["moisture"] = moistureValue;
-  doc["temperature"] = temperature;
-  doc["humidity"] = humidity;
-  doc["nitrogen"] = npkValues[1];    // Nitrogen value
-  doc["phosphorus"] = npkValues[2];  // Phosphorous value
-  doc["potassium"] = npkValues[0];   // Potassium value
-  
-  // Serialize JSON to string
-  String jsonString;
-  serializeJson(doc, jsonString);
+  // Set the fields with our sensor values
+  ThingSpeak.setField(1, humidity);       // Field 1: Moisture
+  ThingSpeak.setField(2, temperature);         // Field 2: Temperature
+  ThingSpeak.setField(3, moistureValue);            // Field 3: Humidity
+  ThingSpeak.setField(4, npkValues[1]);        // Field 4: Nitrogen
+  ThingSpeak.setField(5, npkValues[2]);        // Field 5: Phosphorus
+  ThingSpeak.setField(6, npkValues[0]);        // Field 6: Potassium
   
   // Log connection attempt
-  Serial.println("Connecting to server: " + String(serverUrl));
-  Serial.println("Payload: " + jsonString);
+  Serial.println("Sending data to ThingSpeak...");
   
-  // WOKWI SIMULATOR MODE - Always use simulation in Wokwi
-  #ifdef WOKWI
-    // Complete simulation mode - don't even try to connect
-    Serial.println("[SIMULATED] HTTP Response code: 200");
-    Serial.println("[SIMULATED] Response: {\"status\": \"success\", \"message\": \"Data received\"}");
+  // Write to all fields at once
+  int httpCode = ThingSpeak.writeFields(thingSpeakChannelNumber, thingSpeakWriteAPIKey);
+  
+  // Check the return code
+  if (httpCode == 200) {
+    Serial.println("ThingSpeak update successful");
     
-    // Update LCD with simulation notice
+    // Update LCD with success notice
     lcd.setCursor(0, 3);
-    lcd.print("SIM: Data Sent OK");
+    lcd.print("TS: Data Sent OK");
+  } else {
+    Serial.println("ThingSpeak error: " + String(httpCode));
     
-    return;
-  #endif
-
-  // REAL HARDWARE MODE - Only runs on actual ESP32 hardware
-  // Initialize secure client
-  WiFiClientSecure client;
-  client.setInsecure();  // Skip certificate verification
-  
-  // Connect to server
-  if (!client.connect(serverHost, serverPort)) {
-    Serial.println("Connection failed!");
-    return;
+    // Update LCD with error notice
+    lcd.setCursor(0, 3);
+    lcd.print("TS Error: " + String(httpCode));
   }
-  
-  // Craft HTTP request
-  String httpRequest = String("POST /write_data HTTP/1.1\r\n") +
-                       "Host: " + serverHost + "\r\n" +
-                       "Connection: close\r\n" +
-                       "Content-Type: application/json\r\n" +
-                       "Content-Length: " + jsonString.length() + "\r\n" +
-                       "\r\n" + 
-                       jsonString;
-  
-  // Send request
-  client.print(httpRequest);
-  client.flush();
-  
-  // Wait for response with timeout
-  unsigned long timeout = millis();
-  while (client.available() == 0) {
-    if (millis() - timeout > 15000) {  // 15 second timeout
-      Serial.println("Request timeout!");
-      client.stop();
-      return;
-    }
-  }
-  
-  // Process response
-  String response = "";
-  while (client.available()) {
-    char c = client.read();
-    response += c;
-  }
-  
-  // Extract and log response code
-  int codePos = response.indexOf(" ") + 1;
-  int codeEndPos = response.indexOf(" ", codePos);
-  String responseCode = response.substring(codePos, codeEndPos);
-  
-  Serial.println("HTTP Response code: " + responseCode);
-  
-  // Close connection
-  client.stop();
 }
 
 /**
@@ -286,9 +253,9 @@ void loop() {
   Blynk.virtualWrite(V5, temperature);    // Temperature
   Blynk.virtualWrite(V6, humidity);       // Humidity
   
-  // Send data to cloud server
-  sendDataToServer();
+  // Send data to ThingSpeak
+  sendDataToThingSpeak();
   
   // Wait before next reading
-  delay(2000);
+  delay(15000);  // ThingSpeak free tier has a 15-second update limit
 }

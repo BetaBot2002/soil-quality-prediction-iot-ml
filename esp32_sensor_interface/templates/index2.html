@@ -276,17 +276,15 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Function to update crop type
         function updateCrop() {
             const cropType = document.getElementById('cropSelect').value;
-            
             fetch('/update-crop', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    crop_type: parseInt(cropType)
-                })
+                body: JSON.stringify({ crop_type: parseInt(cropType) }),
             })
             .then(response => response.json())
             .then(data => {
@@ -296,22 +294,20 @@
                     alert('Error updating crop type: ' + data.message);
                 }
             })
-            .catch(error => {
+            .catch((error) => {
                 alert('Error: ' + error);
             });
         }
         
+        // Function to update soil type
         function updateSoil() {
             const soilType = document.getElementById('soilSelect').value;
-            
             fetch('/update-soil', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    soil_type: parseInt(soilType)
-                })
+                body: JSON.stringify({ soil_type: parseInt(soilType) }),
             })
             .then(response => response.json())
             .then(data => {
@@ -321,7 +317,7 @@
                     alert('Error updating soil type: ' + data.message);
                 }
             })
-            .catch(error => {
+            .catch((error) => {
                 alert('Error: ' + error);
             });
             
@@ -330,7 +326,7 @@
             modal.hide();
         }
         
-        // Function to update the UI with new sensor data
+        // Function to update sensor data from ThingSpeak
         function updateSensorData() {
             fetch('/sensor-data', {
                 method: 'POST',
@@ -341,17 +337,101 @@
             })
             .then(response => response.json())
             .then(data => {
-                if (data.status === 'success') {
-                    // Instead of reloading the page, we could update the UI elements directly
-                    // But for simplicity, we'll just reload the page to get the latest data
-                    location.reload();
-                } else {
-                    console.error('Error updating sensor data:', data.message);
+                // Check if we have a warning message (using cached data)
+                if (data.warning) {
+                    console.warn(data.warning);
+                    // Optionally display a warning to the user
+                    const warningElement = document.createElement('div');
+                    warningElement.className = 'alert alert-warning alert-dismissible fade show';
+                    warningElement.innerHTML = `${data.warning} <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>`;
+                    
+                    // Check if warning already exists
+                    const existingWarning = document.querySelector('.alert-warning');
+                    if (!existingWarning) {
+                        document.querySelector('.container').prepend(warningElement);
+                        // Auto-dismiss after 5 seconds
+                        setTimeout(() => {
+                            warningElement.classList.remove('show');
+                            setTimeout(() => warningElement.remove(), 500);
+                        }, 5000);
+                    }
                 }
+                
+                // Use data.data if available (new ThingSpeak structure) or fall back to data directly
+                const sensorData = data.data || data;
+                
+                // Update sensor readings
+                document.getElementById('temperature').textContent = sensorData.temperature.toFixed(1);
+                document.getElementById('humidity').textContent = sensorData.humidity.toFixed(1);
+                document.getElementById('moisture').textContent = sensorData.moisture.toFixed(1);
+                document.getElementById('nitrogen').textContent = sensorData.nitrogen.toFixed(1);
+                document.getElementById('phosphorus').textContent = sensorData.phosphorus.toFixed(1);
+                document.getElementById('potassium').textContent = sensorData.potassium.toFixed(1);
+                
+                // Update fertilizer recommendation
+                const fertilizer = data.recommended_fertilizer || sensorData.recommended_fertilizer;
+                if (fertilizer) {
+                    document.getElementById('recommendedFertilizer').textContent = fertilizer;
+                }
+                
+                // Update timestamp
+                const timestamp = sensorData.timestamp || data.timestamp;
+                if (timestamp) {
+                    document.getElementById('timestamp').textContent = timestamp;
+                }
+                
+                // Update alert indicators
+                updateAlertIndicator('temperatureAlert', sensorData.temperature, 30);
+                updateAlertIndicator('humidityAlert', sensorData.humidity, 70);
+                updateAlertIndicator('moistureAlert', sensorData.moisture, 70);
+                updateAlertIndicator('nitrogenAlert', sensorData.nitrogen, 30);
+                updateAlertIndicator('phosphorusAlert', sensorData.phosphorus, 30);
+                updateAlertIndicator('potassiumAlert', sensorData.potassium, 30);
             })
             .catch(error => {
                 console.error('Error fetching sensor data:', error);
+                // Display error message to user
+                const errorElement = document.createElement('div');
+                errorElement.className = 'alert alert-danger alert-dismissible fade show';
+                errorElement.innerHTML = `Error fetching sensor data. Please try again later. <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>`;
+                
+                // Check if error already exists
+                const existingError = document.querySelector('.alert-danger');
+                if (!existingError) {
+                    document.querySelector('.container').prepend(errorElement);
+                    // Auto-dismiss after 5 seconds
+                    setTimeout(() => {
+                        errorElement.classList.remove('show');
+                        setTimeout(() => errorElement.remove(), 500);
+                    }, 5000);
+                }
             });
+        }
+        
+        // Function to update alert indicators based on threshold values
+        function updateAlertIndicator(elementId, value, threshold) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            
+            if (elementId.includes('moisture') || elementId.includes('humidity')) {
+                // For moisture and humidity, alert when below threshold
+                if (value < threshold) {
+                    element.classList.remove('bg-success');
+                    element.classList.add('bg-danger');
+                } else {
+                    element.classList.remove('bg-danger');
+                    element.classList.add('bg-success');
+                }
+            } else {
+                // For other sensors, alert when above threshold
+                if (value > threshold) {
+                    element.classList.remove('bg-success');
+                    element.classList.add('bg-danger');
+                } else {
+                    element.classList.remove('bg-danger');
+                    element.classList.add('bg-success');
+                }
+            }
         }
         
         // Add refresh button to the page
