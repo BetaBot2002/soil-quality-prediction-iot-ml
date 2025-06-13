@@ -5,3 +5,4 @@ BlynkESP32_BT_WF
 WiFi
 LiquidCrystal I2C
 DHT sensor library for ESPx
+ArduinoJson
