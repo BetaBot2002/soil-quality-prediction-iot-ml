@@ -49,6 +49,15 @@ DHTesp dhtSensor;
 float temperature = 0;
 float humidity = 0;
 
+// Variables for randomized sensor data
+unsigned long lastRandomizeTime = 0;
+const int randomizeInterval = 1000;  // 1 second interval for randomizing data
+
+// Previous sensor values (for ensuring small changes)
+int prevMoistureValue = 500;  // Starting with a mid-range value
+float prevTemperature = 25.0;  // Starting with room temperature
+float prevHumidity = 50.0;    // Starting with moderate humidity
+uint8_t prevNpkValues[NPK_COMMANDS] = {50, 50, 50};  // Starting with mid-range NPK values
 
 /**
  * Produces alert sounds with the buzzer
@@ -73,6 +82,25 @@ void setup() {
   Serial.begin(115200);  // Debug serial port
   Serial2.begin(15200, SERIAL_8N1, 16, 17);  // NPK sensor communication
 
+  // Initialize random number generator
+  randomSeed(analogRead(A0));
+  
+  // Set initial sensor values
+  prevMoistureValue = random(400, 600);  // Start with mid-range moisture
+  prevTemperature = random(220, 280) / 10.0;  // Start with 22-28°C
+  prevHumidity = random(450, 650) / 10.0;     // Start with 45-65% humidity
+  for (uint8_t i = 0; i < NPK_COMMANDS; i++) {
+    prevNpkValues[i] = random(40, 60);  // Start with mid-range NPK values
+  }
+  
+  // Initialize sensor values with the initial random values
+  moistureValue = prevMoistureValue;
+  temperature = prevTemperature;
+  humidity = prevHumidity;
+  for (uint8_t i = 0; i < NPK_COMMANDS; i++) {
+    npkValues[i] = prevNpkValues[i];
+  }
+  
   // Connect to WiFi and Blynk
   Serial.print("Connecting to WiFi...");
   Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
@@ -164,32 +192,15 @@ void sendDataToThingSpeak() {
 void loop() {
   Blynk.run();  // Process Blynk communications
   
-  // Read moisture sensor
-  moistureValue = analogRead(MOISTURE_PIN);
-  Serial.println("Moisture: " + String(moistureValue));
+  // Check if it's time to randomize sensor data (every 1 second)
+  unsigned long currentMillis = millis();
+  if (currentMillis - lastRandomizeTime >= randomizeInterval) {
+    lastRandomizeTime = currentMillis;
+    randomizeSensorData();
+  }
   
-  // Read temperature and humidity
-  TempAndHumidity data = dhtSensor.getTempAndHumidity();
-  if (dhtSensor.getStatus() != 0) {
-    Serial.println("DHT sensor error: " + String(dhtSensor.getStatusString()));
-    temperature = 0;
-    humidity = 0;
-  } else {
-    temperature = data.temperature;
-    humidity = data.humidity;
-    Serial.println("Temperature: " + String(temperature, 1) + "°C, Humidity: " + String(humidity, 1) + "%");
-  }
-
-  // Read NPK sensor values
-  for (uint8_t i = 0; i < NPK_COMMANDS; i++) {
-    Serial2.print((char)npkCommands[i]);  // Send command to NPK sensor
-    if (Serial2.available()) {
-      npkValues[i] = Serial2.read();  // Read response
-      Serial2.flush();  // Clear buffer
-      Serial.println(npkLabels[i] + String(npkValues[i]));
-    }
-    delay(500);  // Short delay between commands
-  }
+  // The rest of the loop continues with the existing 15-second interval
+  // for ThingSpeak updates and other operations
   
   // Check alert conditions
   bool moistureAlert = (moistureValue < 20);
@@ -258,4 +269,46 @@ void loop() {
   
   // Wait before next reading
   delay(15000);  // ThingSpeak free tier has a 15-second update limit
+}
+
+
+/**
+ * Randomizes sensor data with small variations from previous values
+ * Ensures new values don't differ too much from previous readings
+ */
+void randomizeSensorData() {
+  // Random variation limits
+  const int moistureVariation = 10;    // Max +/- change for moisture
+  const float tempVariation = 0.5;     // Max +/- change for temperature
+  const float humidityVariation = 1.0; // Max +/- change for humidity
+  const int npkVariation = 2;          // Max +/- change for NPK values
+  
+  // Randomize moisture (0-4095 for ESP32 ADC)
+  moistureValue = prevMoistureValue + random(-moistureVariation, moistureVariation + 1);
+  moistureValue = constrain(moistureValue, 0, 4095);
+  prevMoistureValue = moistureValue;
+  
+  // Randomize temperature (realistic range: 10-40°C)
+  temperature = prevTemperature + (random(-tempVariation * 10, tempVariation * 10 + 1) / 10.0);
+  temperature = constrain(temperature, 10.0, 40.0);
+  prevTemperature = temperature;
+  
+  // Randomize humidity (realistic range: 20-90%)
+  humidity = prevHumidity + (random(-humidityVariation * 10, humidityVariation * 10 + 1) / 10.0);
+  humidity = constrain(humidity, 20.0, 90.0);
+  prevHumidity = humidity;
+  
+  // Randomize NPK values (realistic range: 0-100)
+  for (uint8_t i = 0; i < NPK_COMMANDS; i++) {
+    npkValues[i] = prevNpkValues[i] + random(-npkVariation, npkVariation + 1);
+    npkValues[i] = constrain(npkValues[i], 0, 100);
+    prevNpkValues[i] = npkValues[i];
+  }
+  
+  // Print randomized values to serial for debugging
+  Serial.println("Randomized Moisture: " + String(moistureValue));
+  Serial.println("Randomized Temperature: " + String(temperature, 1) + "°C, Humidity: " + String(humidity, 1) + "%");
+  for (uint8_t i = 0; i < NPK_COMMANDS; i++) {
+    Serial.println("Randomized " + String(npkLabels[i]) + String(npkValues[i]));
+  }
 }
