@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "author": "Sinchan Nandy",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "wokwi-breadboard-half", "id": "bb1", "top": -223.8, "left": -323.6, "attrs": {} },
+    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 57.6, "left": 4.84, "attrs": {} },
+    { "type": "chip-npksensor", "id": "chip2", "top": 116.22, "left": 273.6, "attrs": {} },
+    { "type": "chip-moisturesensor", "id": "chip1", "top": 29.82, "left": -206.4, "attrs": {} },
+    { "type": "wokwi-led", "id": "led1", "top": 102, "left": -361, "attrs": { "color": "red" } },
+    {
+      "type": "wokwi-buzzer",
+      "id": "bz1",
+      "top": 108,
+      "left": -267,
+      "attrs": { "volume": "0.1" }
+    },
+    {
+      "type": "wokwi-lcd2004",
+      "id": "lcd1",
+      "top": -310.4,
+      "left": 101.6,
+      "attrs": { "pins": "i2c" }
+    },
+    { "type": "wokwi-dht22", "id": "dht1", "top": 317.1, "left": 148.2, "attrs": {} }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "chip2:RX", "esp:17", "green", [ "h-19.2", "v86.4" ] ],
+    [ "chip2:TX", "esp:16", "green", [ "v19.2", "h-172.8" ] ],
+    [ "chip1:A0", "esp:34", "green", [ "v0" ] ],
+    [ "esp:3V3", "bb1:bp.25", "red", [ "h0.15", "v-123.9" ] ],
+    [ "esp:GND.2", "bb1:bn.25", "black", [ "v0" ] ],
+    [ "chip1:VCC", "bb1:bp.9", "red", [ "h0" ] ],
+    [ "chip1:GND", "bb1:bn.5", "black", [ "h0" ] ],
+    [ "chip2:VCC", "bb1:bp.22", "red", [ "h-144", "v-114.3" ] ],
+    [ "chip2:GND", "bb1:bn.25", "black", [ "h-153.6", "v-113.9" ] ],
+    [ "led1:C", "bb1:bn.1", "black", [ "h-18.8", "v-171.5" ] ],
+    [ "bz1:1", "bb1:bn.2", "black", [ "h-38.4", "v-96", "h-1.6" ] ],
+    [ "led1:A", "esp:26", "green", [ "v76.8", "h326.4", "v-48" ] ],
+    [ "bz1:2", "esp:27", "green", [ "v0" ] ],
+    [ "lcd1:SDA", "esp:21", "blue", [ "h-67.2", "v201.8", "h144", "v201.6" ] ],
+    [ "lcd1:SCL", "esp:22", "violet", [ "h-19.2", "v173.1", "h134.4", "v172.8" ] ],
+    [ "lcd1:GND", "bb1:bn.25", "black", [ "h0" ] ],
+    [ "lcd1:VCC", "bb1:bp.21", "red", [ "h0" ] ],
+    [ "dht1:VCC", "bb1:bp.15", "red", [ "h0" ] ],
+    [ "dht1:GND", "bb1:bn.15", "black", [ "h0" ] ],
+    [ "dht1:SDA", "esp:15", "yellow", [ "v0" ] ]
+  ],
+  "dependencies": {}
+}

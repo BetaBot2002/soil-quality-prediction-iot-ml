@@ -1,0 +1,53 @@
+{
+  "name": "DHT22 Temperature & Humidity Sensor",
+  "author": "Trae AI",
+  "pins": [
+    "VCC",
+    "DATA",
+    "NC",
+    "GND"
+  ],
+  "behavior": {
+    "includes": [
+      "dht22sensor.chip.c"
+    ]
+  },
+  "controls": [
+    {
+      "id": "temperature",
+      "label": "Temperature (°C)",
+      "type": "range",
+      "min": 20,
+      "max": 40,
+      "step": 0.1,
+      "value": 30
+    },
+    {
+      "id": "humidity",
+      "label": "Humidity (%)",
+      "type": "range",
+      "min": 40,
+      "max": 80,
+      "step": 0.1,
+      "value": 60
+    }
+  ],
+  "displays": [
+    {
+      "id": "tempDisplay",
+      "label": "Temperature",
+      "type": "segment",
+      "digits": 4,
+      "position": { "x": 50, "y": 10 },
+      "color": "#ff0000"
+    },
+    {
+      "id": "humidityDisplay",
+      "label": "Humidity",
+      "type": "segment",
+      "digits": 4,
+      "position": { "x": 50, "y": 40 },
+      "color": "#0000ff"
+    }
+  ]
+}

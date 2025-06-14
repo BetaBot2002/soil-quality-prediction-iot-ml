@@ -42,6 +42,13 @@
 <body>
     <div class="container py-4">
         <h1 class="text-center mb-4">Soil Quality Prediction System</h1>
+        <div class="row mb-4">
+            <div class="col-12 text-center">
+                <button class="btn btn-outline-primary" onclick="location.reload()">
+                    <i class="bi bi-arrow-clockwise me-2"></i>Refresh
+                </button>
+            </div>
+        </div>
         
         <div class="row mb-4">
             <div class="col-md-6">
@@ -50,10 +57,10 @@
                         <h5 class="card-title">
                             <i class="bi bi-thermometer-half me-2"></i>
                             Temperature
-                            <span class="alert-indicator float-end {{ 'alert-red' if readings.temperature > 35 else 'alert-green' }}"></span>
+                            <span id="temperatureAlert" class="alert-indicator float-end {{ 'alert-red' if readings.temperature > 35 else 'alert-green' }}"></span>
                         </h5>
                         <p class="reading-value">
-                            {{ readings.temperature }}
+                            <span id="temperature">{{ readings.temperature }}</span>
                             <span class="reading-unit">°C</span>
                         </p>
                     </div>
@@ -65,10 +72,10 @@
                         <h5 class="card-title">
                             <i class="bi bi-droplet-half me-2"></i>
                             Humidity
-                            <span class="alert-indicator float-end {{ 'alert-red' if readings.humidity < 30 else 'alert-green' }}"></span>
+                            <span id="humidityAlert" class="alert-indicator float-end {{ 'alert-red' if readings.humidity < 30 else 'alert-green' }}"></span>
                         </h5>
                         <p class="reading-value">
-                            {{ readings.humidity }}
+                            <span id="humidity">{{ readings.humidity }}</span>
                             <span class="reading-unit">%</span>
                         </p>
                     </div>
@@ -83,10 +90,10 @@
                         <h5 class="card-title">
                             <i class="bi bi-moisture me-2"></i>
                             Soil Moisture
-                            <span class="alert-indicator float-end {{ 'alert-red' if readings.moisture < 20 else 'alert-green' }}"></span>
+                            <span id="moistureAlert" class="alert-indicator float-end {{ 'alert-red' if readings.moisture < 20 else 'alert-green' }}"></span>
                         </h5>
                         <p class="reading-value">
-                            {{ readings.moisture }}
+                            <span id="moisture">{{ readings.moisture }}</span>
                             <span class="reading-unit">%</span>
                         </p>
                     </div>
@@ -137,10 +144,10 @@
                         <h5 class="card-title">
                             <i class="bi bi-circle-square me-2"></i>
                             Nitrogen
-                            <span class="alert-indicator float-end {{ 'alert-red' if readings.nitrogen < 10 else 'alert-green' }}"></span>
+                            <span id="nitrogenAlert" class="alert-indicator float-end {{ 'alert-red' if readings.nitrogen < 10 else 'alert-green' }}"></span>
                         </h5>
                         <p class="reading-value">
-                            {{ readings.nitrogen }}
+                            <span id="nitrogen">{{ readings.nitrogen }}</span>
                             <span class="reading-unit">mg/kg</span>
                         </p>
                     </div>
@@ -152,10 +159,10 @@
                         <h5 class="card-title">
                             <i class="bi bi-circle-square me-2"></i>
                             Phosphorus
-                            <span class="alert-indicator float-end {{ 'alert-red' if readings.phosphorus < 10 else 'alert-green' }}"></span>
+                            <span id="phosphorusAlert" class="alert-indicator float-end {{ 'alert-red' if readings.phosphorus < 10 else 'alert-green' }}"></span>
                         </h5>
                         <p class="reading-value">
-                            {{ readings.phosphorus }}
+                            <span id="phosphorus">{{ readings.phosphorus }}</span>
                             <span class="reading-unit">mg/kg</span>
                         </p>
                     </div>
@@ -167,10 +174,10 @@
                         <h5 class="card-title">
                             <i class="bi bi-circle-square me-2"></i>
                             Potassium
-                            <span class="alert-indicator float-end {{ 'alert-red' if readings.potassium < 10 else 'alert-green' }}"></span>
+                            <span id="potassiumAlert" class="alert-indicator float-end {{ 'alert-red' if readings.potassium < 10 else 'alert-green' }}"></span>
                         </h5>
                         <p class="reading-value">
-                            {{ readings.potassium }}
+                            <span id="potassium">{{ readings.potassium }}</span>
                             <span class="reading-unit">mg/kg</span>
                         </p>
                     </div>
@@ -187,7 +194,7 @@
                             Recommended Fertilizer
                         </h5>
                         <p class="reading-value text-primary">
-                            {{ readings.recommended_fertilizer or 'No recommendation yet' }}
+                            <span id="recommendedFertilizer">{{ readings.recommended_fertilizer or 'No recommendation yet' }}</span>
                         </p>
                     </div>
                 </div>
@@ -200,7 +207,7 @@
                             Last Updated
                         </h5>
                         <p class="reading-value" style="font-size: 1.2rem;">
-                            {{ readings.timestamp or 'No data' }}
+                            <span id="timestamp">{{ readings.timestamp or 'No data' }}</span>
                         </p>
                     </div>
                 </div>
@@ -326,87 +333,7 @@
             modal.hide();
         }
         
-        // Function to update sensor data from ThingSpeak
-        function updateSensorData() {
-            fetch('/sensor-data', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({})
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Check if we have a warning message (using cached data)
-                if (data.warning) {
-                    console.warn(data.warning);
-                    // Optionally display a warning to the user
-                    const warningElement = document.createElement('div');
-                    warningElement.className = 'alert alert-warning alert-dismissible fade show';
-                    warningElement.innerHTML = `${data.warning} <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>`;
-                    
-                    // Check if warning already exists
-                    const existingWarning = document.querySelector('.alert-warning');
-                    if (!existingWarning) {
-                        document.querySelector('.container').prepend(warningElement);
-                        // Auto-dismiss after 5 seconds
-                        setTimeout(() => {
-                            warningElement.classList.remove('show');
-                            setTimeout(() => warningElement.remove(), 500);
-                        }, 5000);
-                    }
-                }
-                
-                // Use data.data if available (new ThingSpeak structure) or fall back to data directly
-                const sensorData = data.data || data;
-                
-                // Update sensor readings
-                document.getElementById('temperature').textContent = sensorData.temperature.toFixed(1);
-                document.getElementById('humidity').textContent = sensorData.humidity.toFixed(1);
-                document.getElementById('moisture').textContent = sensorData.moisture.toFixed(1);
-                document.getElementById('nitrogen').textContent = sensorData.nitrogen.toFixed(1);
-                document.getElementById('phosphorus').textContent = sensorData.phosphorus.toFixed(1);
-                document.getElementById('potassium').textContent = sensorData.potassium.toFixed(1);
-                
-                // Update fertilizer recommendation
-                const fertilizer = data.recommended_fertilizer || sensorData.recommended_fertilizer;
-                if (fertilizer) {
-                    document.getElementById('recommendedFertilizer').textContent = fertilizer;
-                }
-                
-                // Update timestamp
-                const timestamp = sensorData.timestamp || data.timestamp;
-                if (timestamp) {
-                    document.getElementById('timestamp').textContent = timestamp;
-                }
-                
-                // Update alert indicators
-                updateAlertIndicator('temperatureAlert', sensorData.temperature, 30);
-                updateAlertIndicator('humidityAlert', sensorData.humidity, 70);
-                updateAlertIndicator('moistureAlert', sensorData.moisture, 70);
-                updateAlertIndicator('nitrogenAlert', sensorData.nitrogen, 30);
-                updateAlertIndicator('phosphorusAlert', sensorData.phosphorus, 30);
-                updateAlertIndicator('potassiumAlert', sensorData.potassium, 30);
-            })
-            .catch(error => {
-                console.error('Error fetching sensor data:', error);
-                // Display error message to user
-                const errorElement = document.createElement('div');
-                errorElement.className = 'alert alert-danger alert-dismissible fade show';
-                errorElement.innerHTML = `Error fetching sensor data. Please try again later. <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>`;
-                
-                // Check if error already exists
-                const existingError = document.querySelector('.alert-danger');
-                if (!existingError) {
-                    document.querySelector('.container').prepend(errorElement);
-                    // Auto-dismiss after 5 seconds
-                    setTimeout(() => {
-                        errorElement.classList.remove('show');
-                        setTimeout(() => errorElement.remove(), 500);
-                    }, 5000);
-                }
-            });
-        }
+
         
         // Function to update alert indicators based on threshold values
         function updateAlertIndicator(elementId, value, threshold) {
@@ -434,23 +361,7 @@
             }
         }
         
-        // Add refresh button to the page
         document.addEventListener('DOMContentLoaded', function() {
-            // Create refresh button
-            const container = document.querySelector('.container');
-            const refreshButton = document.createElement('div');
-            refreshButton.className = 'row mt-4 mb-4';
-            refreshButton.innerHTML = `
-                <div class="col-12 text-center">
-                    <button class="btn btn-outline-primary" onclick="updateSensorData()">
-                        <i class="bi bi-arrow-clockwise me-2"></i>Refresh Sensor Data
-                    </button>
-                </div>
-            `;
-            
-            // Insert the button after the last row in the container
-            container.appendChild(refreshButton);
-            
             // No automatic data loading when page loads
             console.log('Page loaded, waiting for user to manually refresh data...');
             
