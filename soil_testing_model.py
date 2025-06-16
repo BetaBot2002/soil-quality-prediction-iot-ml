@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 # Load the dataset
 def load_data():
-    df = pd.read_csv('dataset/data_core.csv')
+    df = pd.read_csv('dataset/enhanced_data_core.csv')
     return df
 
 # Preprocess the data
