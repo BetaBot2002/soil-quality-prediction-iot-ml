@@ -1,0 +1,141 @@
+Temparature,Humidity,Moisture,Soil Type,Crop Type,Nitrogen,Potassium,Phosphorous,Fertilizer Name
+28.5,55.0,35.0,Sandy,Maize,35,5,10,Urea
+29.0,56.0,36.0,Sandy,Maize,36,6,11,Urea
+29.5,57.0,37.0,Sandy,Maize,37,7,12,Urea
+27.0,54.0,32.0,Sandy,Barley,10,12,15,17-17-17
+27.5,55.0,33.0,Sandy,Barley,11,13,16,17-17-17
+28.0,56.0,34.0,Sandy,Barley,12,14,17,17-17-17
+30.0,58.0,40.0,Sandy,Millets,20,5,20,28-28
+30.5,59.0,41.0,Sandy,Millets,21,6,21,28-28
+31.0,60.0,42.0,Sandy,Millets,22,7,22,28-28
+26.0,52.0,38.0,Sandy,Wheat,10,5,10,20-20
+26.5,53.0,39.0,Sandy,Wheat,11,6,11,20-20
+27.0,54.0,40.0,Sandy,Wheat,12,7,12,20-20
+29.0,56.0,45.0,Sandy,Ground Nuts,8,10,30,14-35-14
+29.5,57.0,46.0,Sandy,Ground Nuts,9,11,31,14-35-14
+30.0,58.0,47.0,Sandy,Ground Nuts,10,12,32,14-35-14
+31.0,60.0,50.0,Sandy,Sugarcane,12,5,40,DAP
+31.5,61.0,51.0,Sandy,Sugarcane,13,6,41,DAP
+32.0,62.0,52.0,Sandy,Sugarcane,14,7,42,DAP
+30.0,58.0,50.0,Loamy,Wheat,40,5,5,Urea
+30.5,59.0,51.0,Loamy,Wheat,41,6,6,Urea
+31.0,60.0,52.0,Loamy,Wheat,42,7,7,Urea
+25.0,50.0,60.0,Loamy,Cotton,8,10,30,14-35-14
+25.5,51.0,61.0,Loamy,Cotton,9,11,31,14-35-14
+26.0,52.0,62.0,Loamy,Cotton,10,12,32,14-35-14
+29.0,56.0,45.0,Loamy,Sugarcane,12,5,35,DAP
+29.5,57.0,46.0,Loamy,Sugarcane,13,6,36,DAP
+30.0,58.0,47.0,Loamy,Sugarcane,14,7,37,DAP
+27.0,54.0,40.0,Loamy,Maize,15,15,15,17-17-17
+27.5,55.0,41.0,Loamy,Maize,16,16,16,17-17-17
+28.0,56.0,42.0,Loamy,Maize,17,17,17,17-17-17
+26.0,52.0,38.0,Loamy,Pulses,10,5,10,20-20
+26.5,53.0,39.0,Loamy,Pulses,11,6,11,20-20
+27.0,54.0,40.0,Loamy,Pulses,12,7,12,20-20
+28.0,55.0,42.0,Loamy,Ground Nuts,22,5,22,28-28
+28.5,56.0,43.0,Loamy,Ground Nuts,23,6,23,28-28
+29.0,57.0,44.0,Loamy,Ground Nuts,24,7,24,28-28
+28.0,55.0,45.0,Clayey,Paddy,35,5,5,Urea
+28.5,56.0,46.0,Clayey,Paddy,36,6,6,Urea
+29.0,57.0,47.0,Clayey,Paddy,37,7,7,Urea
+27.0,54.0,30.0,Clayey,Pulses,12,5,40,DAP
+27.5,55.0,31.0,Clayey,Pulses,13,6,41,DAP
+28.0,56.0,32.0,Clayey,Pulses,14,7,42,DAP
+35.0,65.0,40.0,Clayey,Maize,5,18,15,10-26-26
+35.5,66.0,41.0,Clayey,Maize,6,19,16,10-26-26
+36.0,67.0,42.0,Clayey,Maize,7,20,17,10-26-26
+29.0,58.0,42.0,Clayey,Cotton,8,10,28,14-35-14
+29.5,59.0,43.0,Clayey,Cotton,9,11,29,14-35-14
+30.0,60.0,44.0,Clayey,Cotton,10,12,30,14-35-14
+32.0,62.0,40.0,Clayey,Oil seeds,22,5,20,28-28
+32.5,63.0,41.0,Clayey,Oil seeds,23,6,21,28-28
+33.0,64.0,42.0,Clayey,Oil seeds,24,7,22,28-28
+26.0,52.0,35.0,Clayey,Millets,15,15,15,17-17-17
+26.5,53.0,36.0,Clayey,Millets,16,16,16,17-17-17
+27.0,54.0,37.0,Clayey,Millets,17,17,17,17-17-17
+32.0,60.0,35.0,Red,Tobacco,22,5,20,28-28
+32.5,61.0,36.0,Red,Tobacco,23,6,21,28-28
+33.0,62.0,37.0,Red,Tobacco,24,7,22,28-28
+25.0,50.0,60.0,Red,Cotton,8,10,28,14-35-14
+25.5,51.0,61.0,Red,Cotton,9,11,29,14-35-14
+26.0,52.0,62.0,Red,Cotton,10,12,30,14-35-14
+26.0,52.0,30.0,Red,Ground Nuts,12,5,40,DAP
+26.5,53.0,31.0,Red,Ground Nuts,13,6,41,DAP
+27.0,54.0,32.0,Red,Ground Nuts,14,7,42,DAP
+30.0,58.0,30.0,Red,Maize,35,5,5,Urea
+30.5,59.0,31.0,Red,Maize,36,6,6,Urea
+31.0,60.0,32.0,Red,Maize,37,7,7,Urea
+28.0,55.0,40.0,Red,Wheat,15,15,15,17-17-17
+28.5,56.0,41.0,Red,Wheat,16,16,16,17-17-17
+29.0,57.0,42.0,Red,Wheat,17,17,17,17-17-17
+27.0,54.0,38.0,Red,Oil seeds,10,5,10,20-20
+27.5,55.0,39.0,Red,Oil seeds,11,6,11,20-20
+28.0,56.0,40.0,Red,Oil seeds,12,7,12,20-20
+28.0,55.0,60.0,Black,Cotton,35,5,5,Urea
+28.5,56.0,61.0,Black,Cotton,36,6,6,Urea
+29.0,57.0,62.0,Black,Cotton,37,7,7,Urea
+27.0,54.0,35.0,Black,Oil seeds,12,5,38,DAP
+27.5,55.0,36.0,Black,Oil seeds,13,6,39,DAP
+28.0,56.0,37.0,Black,Oil seeds,14,7,40,DAP
+34.0,65.0,55.0,Black,Sugarcane,8,10,28,14-35-14
+34.5,66.0,56.0,Black,Sugarcane,9,11,29,14-35-14
+35.0,67.0,57.0,Black,Sugarcane,10,12,30,14-35-14
+28.0,55.0,35.0,Black,Millets,22,5,20,28-28
+28.5,56.0,36.0,Black,Millets,23,6,21,28-28
+29.0,57.0,37.0,Black,Millets,24,7,22,28-28
+31.0,60.0,25.0,Black,Pulses,5,18,15,10-26-26
+31.5,61.0,26.0,Black,Pulses,6,19,16,10-26-26
+32.0,62.0,27.0,Black,Pulses,7,20,17,10-26-26
+26.0,52.0,40.0,Black,Wheat,15,15,15,17-17-17
+26.5,53.0,41.0,Black,Wheat,16,16,16,17-17-17
+27.0,54.0,42.0,Black,Wheat,17,17,17,17-17-17
+38.0,70.0,70.0,Sandy,Maize,45,5,5,Urea
+20.0,40.0,20.0,Sandy,Maize,5,5,5,20-20
+38.0,70.0,70.0,Loamy,Wheat,45,5,5,Urea
+20.0,40.0,20.0,Loamy,Wheat,5,5,5,20-20
+38.0,70.0,70.0,Clayey,Paddy,45,5,5,Urea
+20.0,40.0,20.0,Clayey,Paddy,5,5,5,20-20
+38.0,70.0,70.0,Red,Tobacco,45,5,5,28-28
+20.0,40.0,20.0,Red,Tobacco,5,5,5,20-20
+38.0,70.0,70.0,Black,Cotton,45,5,5,Urea
+20.0,40.0,20.0,Black,Cotton,5,5,5,20-20
+30.0,60.0,50.0,Sandy,Maize,40,20,40,Urea
+30.0,60.0,50.0,Loamy,Wheat,40,20,40,Urea
+30.0,60.0,50.0,Clayey,Paddy,40,20,40,Urea
+30.0,60.0,50.0,Red,Tobacco,40,20,40,28-28
+30.0,60.0,50.0,Black,Cotton,40,20,40,Urea
+30.0,60.0,50.0,Sandy,Barley,15,15,15,17-17-17
+30.0,60.0,50.0,Loamy,Pulses,15,15,15,17-17-17
+30.0,60.0,50.0,Clayey,Millets,15,15,15,17-17-17
+30.0,60.0,50.0,Red,Wheat,15,15,15,17-17-17
+30.0,60.0,50.0,Black,Wheat,15,15,15,17-17-17
+30.0,60.0,50.0,Sandy,Sugarcane,10,5,40,DAP
+30.0,60.0,50.0,Loamy,Sugarcane,10,5,40,DAP
+30.0,60.0,50.0,Clayey,Pulses,10,5,40,DAP
+30.0,60.0,50.0,Red,Ground Nuts,10,5,40,DAP
+30.0,60.0,50.0,Black,Oil seeds,10,5,40,DAP
+30.0,60.0,50.0,Sandy,Ground Nuts,10,25,10,14-35-14
+30.0,60.0,50.0,Loamy,Cotton,10,25,10,14-35-14
+30.0,60.0,50.0,Clayey,Cotton,10,25,10,14-35-14
+30.0,60.0,50.0,Red,Cotton,10,25,10,14-35-14
+30.0,60.0,50.0,Black,Sugarcane,10,25,10,14-35-14
+30.0,60.0,50.0,Sandy,Wheat,5,5,5,20-20
+30.0,60.0,50.0,Loamy,Maize,5,5,5,20-20
+30.0,60.0,50.0,Clayey,Oil seeds,5,5,5,20-20
+30.0,60.0,50.0,Red,Oil seeds,5,5,5,20-20
+30.0,60.0,50.0,Black,Pulses,5,5,5,20-20
+30.0,60.0,50.0,Sandy,Maize,40,5,5,Urea
+30.0,60.0,50.0,Loamy,Wheat,40,5,5,Urea
+30.0,60.0,50.0,Clayey,Paddy,40,5,5,Urea
+30.0,60.0,50.0,Red,Maize,40,5,5,Urea
+30.0,60.0,50.0,Black,Cotton,40,5,5,Urea
+30.0,60.0,50.0,Sandy,Millets,5,25,5,10-26-26
+30.0,60.0,50.0,Loamy,Ground Nuts,5,25,5,10-26-26
+30.0,60.0,50.0,Clayey,Maize,5,25,5,10-26-26
+30.0,60.0,50.0,Red,Wheat,5,25,5,10-26-26
+30.0,60.0,50.0,Black,Pulses,5,25,5,10-26-26
+30.0,60.0,50.0,Sandy,Sugarcane,5,5,40,DAP
+30.0,60.0,50.0,Loamy,Sugarcane,5,5,40,DAP
+30.0,60.0,50.0,Clayey,Pulses,5,5,40,DAP
+30.0,60.0,50.0,Red,Ground Nuts,5,5,40,DAP
+30.0,60.0,50.0,Black,Oil seeds,5,5,40,DAP
