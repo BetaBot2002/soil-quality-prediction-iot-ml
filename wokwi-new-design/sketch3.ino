@@ -90,9 +90,9 @@ void setup() {
   prevTemperature = random(200, 400) / 10.0;  // Temperature range 20-40°C
   prevHumidity = random(400, 800) / 10.0;     // Humidity range 40-80%
   // NPK values (K, N, P) based on dataset
-  prevNpkValues[0] = random(0, 45);  // Potassium range 0-45
-  prevNpkValues[1] = random(0, 45);  // Nitrogen range 0-45
-  prevNpkValues[2] = random(0, 45);  // Phosphorous range 0-45
+  prevNpkValues[0] = random(15, 45);  // Potassium range 0-45
+  prevNpkValues[1] = random(15, 45);  // Nitrogen range 0-45
+  prevNpkValues[2] = random(15, 45);  // Phosphorous range 0-45
   
   // Initialize sensor values with the initial random values
   moistureValue = prevMoistureValue;
