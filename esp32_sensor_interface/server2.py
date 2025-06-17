@@ -99,6 +99,10 @@ def fetch_sensor_data():
         print(f"Exception while fetching data from ThingSpeak: {e}")
         return None
 
+# Add this after the models initialization and before the predict_fertilizer function
+# Cache to store soil-crop-fertilizer mappings
+fertilizer_cache = {}
+
 def predict_fertilizer(data):
     """Make prediction using the AI model."""
     if models is None:
@@ -122,6 +126,36 @@ def predict_fertilizer(data):
     # Make prediction
     prediction = models['model'].predict(features_scaled)[0]
     fertilizer = models['fertilizer_encoder'].inverse_transform([prediction])[0]
+    
+    # Get soil type and crop type
+    soil_type = data['soil_type']
+    crop_type = data.get('crop_type', 0)
+    
+    # Check if this soil type has any fertilizer recommendations already
+    if soil_type in fertilizer_cache:
+        # Check if any other crop for this soil type has the same fertilizer
+        for existing_crop, existing_fertilizer in fertilizer_cache[soil_type].items():
+            if existing_crop != crop_type and existing_fertilizer == fertilizer:
+                # We have a conflict - same fertilizer for different crops on same soil
+                # Get all possible fertilizers
+                all_fertilizers = list(models['fertilizer_encoder'].classes_)
+                
+                # Remove the conflicting fertilizer
+                alternative_fertilizers = [f for f in all_fertilizers if f != fertilizer]
+                
+                if alternative_fertilizers:
+                    # Choose an alternative fertilizer (first one for simplicity)
+                    # In a more sophisticated implementation, you might want to choose
+                    # based on secondary prediction probabilities
+                    fertilizer = alternative_fertilizers[0]
+                    print(f"Changed fertilizer recommendation for soil {soil_type}, crop {crop_type} "
+                          f"to avoid conflict with crop {existing_crop}")
+                break
+    
+    # Store this recommendation in the cache
+    if soil_type not in fertilizer_cache:
+        fertilizer_cache[soil_type] = {}
+    fertilizer_cache[soil_type][crop_type] = fertilizer
     
     return fertilizer
 
@@ -163,7 +197,11 @@ def home():
         (3, "Tobacco"),
         (4, "Paddy"),
         (5, "Barley"),
-        (6, "Wheat")
+        (6, "Wheat"),
+        (7, "Millets"),
+        (8, "Oil seeds"),
+        (9, "Pulses"),
+        (10, "Ground Nuts")
     ]
     
     return render_template('index2.html', 
