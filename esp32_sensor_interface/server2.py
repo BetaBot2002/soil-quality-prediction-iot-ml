@@ -107,57 +107,62 @@ def predict_fertilizer(data):
     """Make prediction using the AI model."""
     if models is None:
         return "Model not loaded. Please train the model first."
-    
-    # Prepare input data
-    features = np.array([
-        data['temperature'],
-        data['humidity'],
-        data['moisture'],
-        data['soil_type'],
-        data.get('crop_type', 0),  # Default crop type (can be modified through web interface)
-        data['nitrogen'],
-        data['phosphorus'],
-        data['potassium']
-    ]).reshape(1, -1)
-    
-    # Scale features
-    features_scaled = models['scaler'].transform(features)
-    
-    # Make prediction
-    prediction = models['model'].predict(features_scaled)[0]
-    fertilizer = models['fertilizer_encoder'].inverse_transform([prediction])[0]
-    
-    # Get soil type and crop type
-    soil_type = data['soil_type']
-    crop_type = data.get('crop_type', 0)
-    
-    # Check if this soil type has any fertilizer recommendations already
-    if soil_type in fertilizer_cache:
-        # Check if any other crop for this soil type has the same fertilizer
-        for existing_crop, existing_fertilizer in fertilizer_cache[soil_type].items():
-            if existing_crop != crop_type and existing_fertilizer == fertilizer:
-                # We have a conflict - same fertilizer for different crops on same soil
+
+    try:
+        # Prepare input data
+        features = np.array([
+            data['temperature'],
+            data['humidity'],
+            data['moisture'],
+            data['soil_type'],
+            data.get('crop_type', 0),
+            data['nitrogen'],
+            data['phosphorus'],
+            data['potassium']
+        ]).reshape(1, -1)
+
+        # Scale features
+        features_scaled = models['scaler'].transform(features)
+
+        # Make prediction
+        prediction = models['model'].predict(features_scaled)[0]
+        fertilizer = models['fertilizer_encoder'].inverse_transform([prediction])[0]
+
+        # Get soil type and crop type
+        soil_type = data['soil_type']
+        crop_type = data.get('crop_type', 0)
+
+        # Check if this soil type has any fertilizer recommendations already
+        if soil_type in fertilizer_cache:
+            existing_fertilizers = set(fertilizer_cache[soil_type].values())
+
+            # If recommended fertilizer is already assigned to another crop on same soil
+            if fertilizer in existing_fertilizers:
                 # Get all possible fertilizers
-                all_fertilizers = list(models['fertilizer_encoder'].classes_)
-                
-                # Remove the conflicting fertilizer
-                alternative_fertilizers = [f for f in all_fertilizers if f != fertilizer]
-                
+                all_fertilizers = set(models['fertilizer_encoder'].classes_)
+
+                # Remove fertilizers already assigned for this soil type
+                alternative_fertilizers = list(all_fertilizers - existing_fertilizers)
+
                 if alternative_fertilizers:
-                    # Choose an alternative fertilizer (first one for simplicity)
-                    # In a more sophisticated implementation, you might want to choose
-                    # based on secondary prediction probabilities
+                    # Pick first available alternative
                     fertilizer = alternative_fertilizers[0]
                     print(f"Changed fertilizer recommendation for soil {soil_type}, crop {crop_type} "
-                          f"to avoid conflict with crop {existing_crop}")
-                break
-    
-    # Store this recommendation in the cache
-    if soil_type not in fertilizer_cache:
-        fertilizer_cache[soil_type] = {}
-    fertilizer_cache[soil_type][crop_type] = fertilizer
-    
-    return fertilizer
+                          f"to avoid conflicts with existing assignments.")
+                else:
+                    print(f"No alternative fertilizer available for soil {soil_type}. Keeping original: {fertilizer}")
+
+        # Store this recommendation in the cache
+        if soil_type not in fertilizer_cache:
+            fertilizer_cache[soil_type] = {}
+        fertilizer_cache[soil_type][crop_type] = fertilizer
+
+        return fertilizer
+
+    except Exception as e:
+        print(f"Error in predict_fertilizer: {e}")
+        return "Prediction error"
+
 
 @app.route('/')
 def home():
@@ -224,10 +229,8 @@ def receive_data():
                 latest_readings['timestamp'] = timestamp
                 
                 # Get fertilizer recommendation based on updated readings
-                fertilizer = predict_fertilizer(latest_readings['nitrogen'], latest_readings['phosphorus'], 
-                                              latest_readings['potassium'], latest_readings['temperature'], 
-                                              latest_readings['humidity'], latest_readings['moisture'], 
-                                              latest_readings['soil_type'], latest_readings['crop_type'])
+                fertilizer = predict_fertilizer(fertilizer = predict_fertilizer(latest_readings)
+)
                 latest_readings['recommended_fertilizer'] = fertilizer
                 
                 return jsonify({
