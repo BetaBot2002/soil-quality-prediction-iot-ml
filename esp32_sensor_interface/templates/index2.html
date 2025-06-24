@@ -30,16 +30,19 @@
         body {
             background: linear-gradient(135deg, var(--dark-bg) 0%, #000000 100%);
             color: var(--text-secondary);
-            min-height: 100vh;
+            height: 100vh;
             margin: 0;
             padding: 0;
             font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             line-height: 1.5;
+            overflow: hidden;
         }
 
         .container {
             max-width: 1200px;
-            padding: 1.5rem !important;
+            padding: 1rem !important;
+            height: 100vh;
+            overflow: hidden;
         }
 
         /* Card Styles */
@@ -66,7 +69,7 @@
         }
 
         .card-body {
-            padding: 1.5rem;
+            padding: 1rem;
         }
 
         .sensor-card {
@@ -83,7 +86,7 @@
             color: var(--text-primary);
             font-size: 2.2rem;
             font-weight: 700;
-            margin-bottom: 1.5rem !important;
+            margin-bottom: 1rem !important;
             letter-spacing: -0.025em;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
             background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
@@ -255,11 +258,11 @@
 
         /* Layout Adjustments */
         .row {
-            margin-bottom: 1.5rem !important;
+            margin-bottom: 0.75rem !important;
         }
 
         .col-md-4, .col-md-6, .col-md-8 {
-            padding: 0.75rem;
+            padding: 0.5rem;
         }
 
         /* Special Styling */
@@ -270,7 +273,7 @@
         /* Responsive Adjustments */
         @media (max-width: 768px) {
             .container {
-                padding: 1rem !important;
+                padding: 0.75rem !important;
             }
             
             h1 {
@@ -286,30 +289,66 @@
             }
             
             .row {
-                margin-bottom: 1rem !important;
+                margin-bottom: 0.75rem !important;
             }
+        }
+
+        /* No-scroll adjustments */
+        .dashboard-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .dashboard-content {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Compact Dashboard */
+        .dashboard-container {
+            height: calc(100vh - 1rem);
+            overflow: hidden;
+        }
+
+        .dashboard-row {
+            height: calc((100vh - 5rem) / 4);
+            min-height: 80px;
+        }
+
+        .dashboard-header {
+            height: 3rem;
+        }
+
+        .soil-crop-row {
+            height: calc((100vh - 5rem) / 5);
         }
     </style>
 </head>
 
 <body>
-    <div class="container py-4">
-        <h1 class="text-center mb-4">Soil Quality Prediction System</h1>
-        <div class="row mb-4">
-            <div class="col-12 text-center">
-                <button class="btn btn-outline-primary" onclick="location.reload()">
-                    <i class="bi bi-arrow-clockwise me-2"></i>Refresh
+    <div class="container-fluid dashboard-container">
+        <div class="row dashboard-header align-items-center">
+            <div class="col-8">
+                <h1>Fertilizer Prediction according to Soil Quality and Crop Type</h1>
+            </div>
+            <div class="col-4 text-end">
+                <button class="btn btn-sm btn-outline-primary" onclick="location.reload()">
+                    <i class="bi bi-arrow-clockwise"></i>Refresh
                 </button>
             </div>
         </div>
 
-        <div class="row mb-4">
+        <!-- First row: Temperature, Humidity -->
+        <div class="row dashboard-row">
             <div class="col-md-6">
-                <div class="card sensor-card mb-3">
+                <div class="card sensor-card">
                     <div class="card-body">
                         <h5 class="card-title">
-                            <i class="bi bi-thermometer-half me-2"></i>
-                            Temperature
+                            <i class="bi bi-thermometer-half"></i>Temperature
                             <span id="temperatureAlert"
                                 class="alert-indicator float-end {{ 'alert-red' if readings.temperature > 35 else 'alert-green' }}"></span>
                         </h5>
@@ -321,11 +360,10 @@
                 </div>
             </div>
             <div class="col-md-6">
-                <div class="card sensor-card mb-3">
+                <div class="card sensor-card">
                     <div class="card-body">
                         <h5 class="card-title">
-                            <i class="bi bi-droplet-half me-2"></i>
-                            Humidity
+                            <i class="bi bi-droplet-half"></i>Humidity
                             <span id="humidityAlert"
                                 class="alert-indicator float-end {{ 'alert-red' if readings.humidity < 30 else 'alert-green' }}"></span>
                         </h5>
@@ -338,13 +376,13 @@
             </div>
         </div>
 
-        <div class="row mb-4">
+        <!-- Second row: Soil Moisture, Soil Type -->
+        <div class="row dashboard-row">
             <div class="col-md-6">
-                <div class="card sensor-card mb-3">
+                <div class="card sensor-card">
                     <div class="card-body">
                         <h5 class="card-title">
-                            <i class="bi bi-moisture me-2"></i>
-                            Soil Moisture
+                            <i class="bi bi-moisture"></i>Soil Moisture
                             <span id="moistureAlert"
                                 class="alert-indicator float-end {{ 'alert-red' if readings.moisture < 20 else 'alert-green' }}"></span>
                         </h5>
@@ -356,11 +394,10 @@
                 </div>
             </div>
             <div class="col-md-6">
-                <div class="card sensor-card mb-3">
+                <div class="card sensor-card">
                     <div class="card-body">
                         <h5 class="card-title">
-                            <i class="bi bi-layers me-2"></i>
-                            Soil Type
+                            <i class="bi bi-layers"></i>Soil Type
                         </h5>
                         <div class="d-flex justify-content-between align-items-center">
                             <p class="reading-value">
@@ -394,13 +431,13 @@
             </div>
         </div>
 
-        <div class="row mb-4">
+        <!-- Third row: NPK values -->
+        <div class="row dashboard-row">
             <div class="col-md-4">
-                <div class="card sensor-card mb-3">
+                <div class="card sensor-card">
                     <div class="card-body">
                         <h5 class="card-title">
-                            <i class="bi bi-circle-square me-2"></i>
-                            Nitrogen
+                            <i class="bi bi-circle-square"></i>Nitrogen
                             <span id="nitrogenAlert"
                                 class="alert-indicator float-end {{ 'alert-red' if readings.nitrogen < 10 else 'alert-green' }}"></span>
                         </h5>
@@ -412,11 +449,10 @@
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card sensor-card mb-3">
+                <div class="card sensor-card">
                     <div class="card-body">
                         <h5 class="card-title">
-                            <i class="bi bi-circle-square me-2"></i>
-                            Phosphorus
+                            <i class="bi bi-circle-square"></i>Phosphorus
                             <span id="phosphorusAlert"
                                 class="alert-indicator float-end {{ 'alert-red' if readings.phosphorus < 10 else 'alert-green' }}"></span>
                         </h5>
@@ -428,11 +464,10 @@
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card sensor-card mb-3">
+                <div class="card sensor-card">
                     <div class="card-body">
                         <h5 class="card-title">
-                            <i class="bi bi-circle-square me-2"></i>
-                            Potassium
+                            <i class="bi bi-circle-square"></i>Potassium
                             <span id="potassiumAlert"
                                 class="alert-indicator float-end {{ 'alert-red' if readings.potassium < 10 else 'alert-green' }}"></span>
                         </h5>
@@ -445,17 +480,28 @@
             </div>
         </div>
 
-        <div class="row mb-4">
-            <div class="col-md-8">
+        <!-- Fourth row: Fertilizer, Last Updated, Crop Type -->
+        <div class="row dashboard-row">
+            <div class="col-md-5">
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">
-                            <i class="bi bi-award me-2"></i>
-                            Recommended Fertilizer
+                            <i class="bi bi-award"></i>Recommended Fertilizer
                         </h5>
                         <p class="reading-value text-primary">
-                            <span id="recommendedFertilizer">{{ readings.recommended_fertilizer or 'No recommendation
-                                yet' }}</span>
+                            <span id="recommendedFertilizer">{{ readings.recommended_fertilizer or 'No recommendation yet' }}</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-clock-history"></i>Last Updated
+                        </h5>
+                        <p class="reading-value" style="font-size: 0.9rem;">
+                            <span id="timestamp">{{ readings.timestamp or 'No data' }}</span>
                         </p>
                     </div>
                 </div>
@@ -464,44 +510,28 @@
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">
-                            <i class="bi bi-clock-history me-2"></i>
-                            Last Updated
+                            <i class="bi bi-flower1"></i>Crop Type
                         </h5>
-                        <p class="reading-value" style="font-size: 1.2rem;">
-                            <span id="timestamp">{{ readings.timestamp or 'No data' }}</span>
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            <i class="bi bi-flower1 me-2"></i>
-                            Update Crop Type
-                        </h5>
-                        <select class="form-select mb-3" id="cropSelect">
-                            {% if crop_types %}
-                            {% for crop_id, crop_name in crop_types %}
-                            <option value="{{ crop_id }}">{{ crop_name }}</option>
-                            {% endfor %}
-                            {% else %}
-                            <option value="0">Maize</option>
-                            <option value="1">Sugarcane</option>
-                            <option value="2">Cotton</option>
-                            <option value="3">Tobacco</option>
-                            <option value="4">Paddy</option>
-                            <option value="5">Barley</option>
-                            <option value="6">Wheat</option>
-                            {% endif %}
-                        </select>
-                        <button class="btn btn-primary" onclick="updateCrop()">
-                            <i class="bi bi-arrow-repeat me-2"></i>
-                            Update Recommendation
-                        </button>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <select class="form-select form-select-sm" id="cropSelect" style="width: 70%;">
+                                {% if crop_types %}
+                                {% for crop_id, crop_name in crop_types %}
+                                <option value="{{ crop_id }}">{{ crop_name }}</option>
+                                {% endfor %}
+                                {% else %}
+                                <option value="0">Maize</option>
+                                <option value="1">Sugarcane</option>
+                                <option value="2">Cotton</option>
+                                <option value="3">Tobacco</option>
+                                <option value="4">Paddy</option>
+                                <option value="5">Barley</option>
+                                <option value="6">Wheat</option>
+                                {% endif %}
+                            </select>
+                            <button class="btn btn-sm btn-primary" onclick="updateCrop()">
+                                <i class="bi bi-arrow-repeat"></i>Update
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -510,7 +540,7 @@
 
     <!-- Soil Type Modal -->
     <div class="modal fade" id="soilTypeModal" tabindex="-1" aria-labelledby="soilTypeModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-sm">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="soilTypeModalLabel">Change Soil Type</h5>
@@ -520,8 +550,7 @@
                     <select class="form-select" id="soilSelect">
                         {% if soil_types %}
                         {% for soil_id, soil_name in soil_types %}
-                        <option value="{{ soil_id }}" {% if readings.soil_type==soil_id %}selected{% endif %}>{{
-                            soil_name }}</option>
+                        <option value="{{ soil_id }}" {% if readings.soil_type==soil_id %}selected{% endif %}>{{ soil_name }}</option>
                         {% endfor %}
                         {% else %}
                         <option value="0" {% if readings.soil_type==0 %}selected{% endif %}>Sandy</option>
@@ -533,10 +562,9 @@
                     </select>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="updateSoil()">
-                        <i class="bi bi-check-lg me-2"></i>
-                        Save changes
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="updateSoil()">
+                        <i class="bi bi-check-lg"></i>Save
                     </button>
                 </div>
             </div>
