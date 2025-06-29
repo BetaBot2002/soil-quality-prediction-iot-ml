@@ -10,7 +10,7 @@ class ApiService {
       "https://api.thingspeak.com/channels/$channelId/feeds/last.json?api_key=$readApiKey";
   
   // Server API endpoint (if you want to connect to your Flask server)
-  static const String serverEndpoint = "http://192.168.0.6:5000"; // Update with your server's IP
+  static const String serverEndpoint = "http://192.168.79.100:5000"; // Update with your server's IP
 
   // Fetch data from ThingSpeak
   Future<SensorReading> fetchSensorData() async {
