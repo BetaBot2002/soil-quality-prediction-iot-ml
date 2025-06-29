@@ -4,96 +4,103 @@ This project implements a machine learning model for soil testing and fertilizer
 
 ## Features
 
-- Predicts suitable fertilizer based on:
-  - Temperature
-  - Humidity
-  - Moisture
-  - Soil Type
-  - Crop Type
-  - Nitrogen levels
-  - Potassium levels
-  - Phosphorous levels
+* Predicts suitable fertilizer based on:
+
+  * Temperature
+  * Humidity
+  * Moisture
+  * Soil Type
+  * Crop Type
+  * Nitrogen levels
+  * Potassium levels
+  * Phosphorous levels
 
 ## Setup Instructions
 
-1. Create a virtual environment:
-```bash
-python -m venv venv
-```
+1. **Create a virtual environment:**
 
-2. Activate the virtual environment:
-- Windows:
-```bash
-.\venv\Scripts\activate
-```
-- Linux/Mac:
-```bash
-source venv/bin/activate
-```
+   ```bash
+   python -m venv venv
+   ```
 
-3. Install required packages:
-```bash
-pip install -r requirements.txt
-```
+2. **Activate the virtual environment:**
 
-4. Train the model (if not already trained):
-```bash
-python soil_testing_model.py
-```
+   * **Windows:**
 
-5. Make predictions using the interface:
+     ```bash
+     .\venv\Scripts\activate
+     ```
+   * **Linux/Mac:**
+
+     ```bash
+     source venv/bin/activate
+     ```
+
+3. **Install required packages:**
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Train the machine learning model (if not already trained):**
+
+   ```bash
+   python soil_testing_model.py
+   ```
+
+5. **After successful training, follow these steps to run the complete system:**
+
+   * **Run the ESP32 sensor simulation via Wokwi:**
+
+     * Open your Wokwi project
+     * Start the simulation to transmit data to the Thingspeak channel
+
+   * **Run the server to fetch data from Thingspeak and provide fertilizer predictions:**
+
+     ```bash
+     cd esp32_sensor_interface
+     python server2.py
+     ```
+
+   * **Launch the Flutter mobile application:**
+
+     ```bash
+     cd soil_quality_app
+     flutter pub get
+     flutter run
+     ```
+
+## Model Output
+
+Upon training:
+
+1. The dataset is loaded and preprocessed
+2. A Random Forest Classifier is trained
+3. The trained model and encoders are saved in the `models` directory
+4. A confusion matrix visualization is generated
+5. Model performance metrics are printed to the console
+
+## Prediction Interface (for manual testing)
+
+You can still use the CLI-based prediction interface:
+
 ```bash
 python predict.py
 ```
 
-## Model Output
-
-The model will:
-1. Load and preprocess the data
-2. Train a Random Forest Classifier
-3. Save the trained model and necessary encoders in the `models` directory
-4. Generate a confusion matrix visualization
-5. Print model performance metrics
-
-## Prediction Interface
-
-The `predict.py` script provides an interactive interface to:
-1. Input soil parameters (temperature, humidity, moisture)
-2. Input soil composition (nitrogen, potassium, phosphorous)
-3. Select soil type and crop type from available options
-4. Get fertilizer recommendations based on the input parameters
-
-Example usage:
-```
-=== Soil Testing Prediction Interface ===
-
-Enter Temperature (°C): 28
-Enter Humidity (%): 54
-Enter Moisture (%): 46
-Enter Nitrogen content (mg/kg): 35
-Enter Potassium content (mg/kg): 0
-Enter Phosphorous content (mg/kg): 0
-
-Available Soil Types: Clayey, Loamy, Red, Sandy
-Enter Soil Type: Clayey
-
-Available Crop Types: Barley, Cotton, Maize, Paddy, Sugarcane, Tobacco, Wheat
-Enter Crop Type: Paddy
-
-=== Prediction Results ===
-Recommended Fertilizer: Urea
-```
+This will allow you to enter soil parameters and get fertilizer recommendations interactively via the terminal.
 
 ## Model Files
 
-After training, the following files will be created in the `models` directory:
-- `soil_testing_model.joblib`: The trained model
-- `soil_type_encoder.joblib`: Encoder for soil types
-- `crop_type_encoder.joblib`: Encoder for crop types
-- `fertilizer_encoder.joblib`: Encoder for fertilizer names
-- `scaler.joblib`: Feature scaler
-- `confusion_matrix.png`: Visualization of model performance
+After training, the following files will be available in the `models` directory:
+
+* `soil_testing_model.joblib` — Trained ML model
+* `soil_type_encoder.joblib` — Encoder for soil types
+* `crop_type_encoder.joblib` — Encoder for crop types
+* `fertilizer_encoder.joblib` — Encoder for fertilizer names
+* `scaler.joblib` — Feature scaler
+* `confusion_matrix.png` — Model performance visualization
 
 ## Dataset
 
-The model uses the `data_core.csv` dataset located in the `dataset` directory, which contains soil parameters and corresponding fertilizer recommendations. 
+The model uses `data_core.csv` located in the `dataset` directory, containing soil parameters and their corresponding fertilizer recommendations.
